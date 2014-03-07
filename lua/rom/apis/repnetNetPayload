@@ -1,0 +1,36 @@
+--[[
+
+	Replicator net message
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetPayload
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, { repnet1Module.Name.RepNetMessage })
+
+RepNetPayload = {}
+RepNetPayload.__index = RepNetPayload
+
+function Create(type)
+	local instance = {}
+	setmetatable(instance, RepNetMessage)
+	instance.Type = type
+	return instance
+end
+
+-- Helper functions for specific payloads
+function CreateRegionControllerRequest(positionX, positionY)
+	local instance = Create(repnetNetMessage.MessageType.RequestRegionController)
+	instance.PositionX = positionX
+	instance.PositionY = positionY
+	return instance
+end
+
+function CreateRegionControllerAnswer(nodeId)
+	local instance = Create(repnetNetMessage.MessageType.UpdateRegionController)
+	instance.Id = nodeId
+	return instance
+end
+
+repnet1Module.EndInitModule()

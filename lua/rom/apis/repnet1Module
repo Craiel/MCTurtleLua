@@ -1,0 +1,48 @@
+--[[
+
+	General utility functions library
+	
+]]--
+
+local RegisteredModules = {}
+local Dependencies = {}
+
+Name = {
+	["RepNet"] = "RepNet";
+	["RepNetCom"] = "RepNetCom";
+	["RepNetMessage"] = "RepNetMessage";
+	["RepNetPayload"] = "RepNetPayload";
+	["RepNetNodeLocal"] = "RepNetNodeLocal";
+	["RepNetNode"] = "RepNetNode";
+	["RepNetJob"] = "RepNetJob";
+	["RepNetJobIdle"] = "RepNetJob.Idle";
+	["RepNetJobRegCtrl"] = "RepNetJob.RegCtrl";
+}
+
+function BeginInitModule(name, version, dependencies)
+	if table.contains(name, RegisteredModules) then
+		error("Module is already registered!")
+	end
+	
+	RegisteredModules[name] = version
+	Dependencies[name] = dependencies
+	repnet0Utils.prn(name, repnet0Utils.Section.Init)
+end
+
+function EndInitModule()
+	repnet0Utils.prn("DONE\n")
+end
+
+function CheckDependencies()
+	repnet0Utils.prn("Checking module dependencies")
+	for module, dependencies in pairs(Dependencies) do
+		for _, entry in pairs(dependencies) do
+			if table.contains(entry, RegisteredModules) == nil then
+				repnet0Utils.prn("#ERR: unsatisfied dependency " .. entry)
+				return false
+			end
+		end
+	end
+	
+	return true
+end

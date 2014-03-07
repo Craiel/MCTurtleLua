@@ -1,0 +1,76 @@
+--[[
+
+	General utility functions library
+	
+]]--
+
+UpTime = 0
+
+local Verbose = true
+
+Section = {
+	["Init"] = "INIT";
+}
+
+function string.lpad(str, len, char)
+    if char == nil then char = ' ' end
+    return str .. string.rep(char, len - #str)
+end
+
+function string.rpad(str, len, char)
+    if char == nil then char = ' ' end
+    return string.rep(char, len - #str) .. str
+end
+
+function prn(message, section)
+	if Verbose then
+		outMessage = "[" .. string.rpad(tostring(Time), 4, '0') .. "] "
+		if section ~= nil then
+			outMessage = outMessage .. section .. " - "
+		end
+		
+		print(outMessage .. message)
+	end
+end
+
+-- reflect on an object to see what it contains
+function Desc(o)
+	if o == nil then
+		print("Object is nil")
+		return
+	end
+	
+	local objectType = type(x)
+	if objectType == "table" then
+	    print("Reflecting on table")
+	else
+	    print("Reflecting on object of type " .. objectType)		
+	end
+	
+	for key,value in pairs(o) do
+		print("." .. key);
+	end
+end
+
+-- Converts the table into a set
+function table.set(t)
+	local set = {}
+	for _, entry in ipairs(t) do set[entry] = true end
+	return set
+end
+
+-- Finds a specific element in a dictionary
+function table.contains(element, t)
+	for key, value in pairs(t) do
+		if key == element then
+			return true
+		end
+	end
+	return false
+end
+
+function GetPositionInRegion(regionSize, positionX, positionY)
+	local targetX = positionX / regionSize
+	local targetY = positionY / regionSize
+	return math.floor(targetX), math.floor(targetY)
+end

@@ -1,0 +1,59 @@
+--[[
+
+	Communication utilities
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetCom
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, {
+	repnet1Module.Name.RepNet,
+	repnet1Module.Name.RepNetMessage
+})
+
+function RequestRegionController()
+	local data = repnetNetMessage.Create(repnetNetMessage.MessageType.RequestRegionController, nil)
+	repnetNet.Instance:Broadcast(nil, data)
+	return data
+end
+
+function Idle()
+	local data = repnetNetMessage.Create(repnetNetMessage.MessageType.Idle, nil)
+	repnetNet.Instance:Broadcast(nil, data)
+	return data
+end
+
+function Info(source, message)
+	local data = repnetNetMessage.Create(repnetNetMessage.MessageType.Info)
+	data.Message = "[" .. source.Id .. "] " .. message
+	repnetNet.Instance:Broadcast(nil, data)
+	return data
+end
+
+function Error(source, message)
+	local data = repnetNetMessage.Create(repnetNetMessage.MessageType.Error)
+	data.Message = "[" .. source.Id .. "] " .. message
+	repnetNet.Instance:Broadcast(nil, data)
+	return data
+end
+
+function Activate(targetId)
+	local data = repnetNetMessage.Create(repnetNetMessage.MessageType.Activate, nil)
+	repnetNet.Instance:Broadcast(targetId, data)
+	return data
+end
+
+function Deactivate(targetId)
+	local data = repnetNetMessage.Create(repnetNetMessage.MessageType.Deactivate, nil)
+	repnetNet.Instance:Broadcast(targetId, data)
+	return data
+end
+
+function UpdateStatus(targetId)
+	local data = repnetNetMessage.Create(repnetNetMessage.MessageType.UpdateStatus, nil)
+	repnetNet.Instance:Broadcast(targetId, data)
+	return data
+end
+
+repnet1Module.EndInitModule()

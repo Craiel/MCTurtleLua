@@ -1,0 +1,91 @@
+--[[
+
+	Replicator net message
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetMessage
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, {})
+
+local DefaultMessageTimeout = 30
+
+RepNetMessage = {}
+RepNetMessage.__index = RepNetMessage
+
+MessageType = {
+	-- System
+	["Unknown"] = 1;
+	["Info"] = 2;
+	["Idle"] = 3;
+	["Error"] = 4;
+	
+	-- General
+	["Activate"] = 10;
+	["Deactivate"] = 11;
+	["UpdateStatus"] = 12;
+	
+	-- Network
+	["RequestRegionController"] = 101;
+	["UpdateRegionController"] = 102;
+}
+
+-- Constructor
+function Create(type, rawData)
+	local instance = {}
+	setmetatable(instance, RepNetMessage)
+	instance.Type = type
+	instance.Message = nil
+	instance.SourceId = nil
+	instance.TargetId = nil
+	instance.Frequency = nil
+	instance.ReplyFrequency = nil
+	instance.Side = nil
+	instance.Distance = nil
+	instance.Timeout = DefaultMessageTimeout
+	
+	if rawData ~= nil then
+		instance.Decode(rawData)
+	end
+	
+	return instance
+end
+
+function Decode(rawData)
+	local instance = {}
+	setmetatable(instance, RepNetMessage)
+	instance.Type = nil
+	instance.Message = nil
+	instance.Payload = nil
+	instance.SourceId = nil
+	instance.TargetId = nil
+	instance.Frequency = nil
+	instance.ReplyFrequency = nil
+	instance.Side = nil
+	instance.Distance = nil
+	
+	-- Todo: decode
+	
+	return instance
+end
+
+function RepNetMessage:Encode()
+end
+
+function RepNetMessage:ToString()
+	local data = {}
+	table.insert(data, "[")
+	if self.SourceId ~= nil then table.insert(data, sourceId) else table.insert(data, "Global") end
+	table.insert(data, "] " .. self.Type .. " ")
+	if self.TargetId ~= nil then table.insert(data, " to " .. self.TargetId) end
+	if self.Frequency ~= nil then table.insert(data, " out(" .. self.Frequency .. ")") end
+	if self.ReplyFrequency ~= nil then table.insert(data, " in(" .. self.ReplyFrequency .. ")") end
+	if self.Side ~= nil then table.insert(data, " side=" .. self.Side) end
+	if self.Distance ~= nil then table.insert(data, " distance=" .. self.Distance) end
+	if self.Payload ~= nil then table.insert(data, " payload of type " .. self.Payload.Type) end
+	if self.Message ~= nil then table.insert(data, "\n" .. self.Message) end
+	return table.concat(data, "")
+end
+
+repnet1Module.EndInitModule()

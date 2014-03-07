@@ -1,0 +1,8 @@
+print("becoming replicator")
+if not repnet1Module.CheckDependencies() then
+	print("Dependency check failed\nsystem shutting down!")
+	return
+end
+
+local node = repnetNodeLocal.Create()
+node.Activate(node)

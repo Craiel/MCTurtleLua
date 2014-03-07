@@ -1,0 +1,43 @@
+--[[
+
+	The idle job
+	will try to get basic info and become useful
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetJobIdle
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, { repnet1Module.Name.RepNetJob })
+
+JobIdle = {}
+JobIdle.__index = JobIdle
+
+function Create(node)
+	local instance = repnetJob.Create(node)
+	setmetatable(instance, JobIdle)
+	
+	instance.WorkContract = nil
+	
+	return instance
+end
+
+function JobIdle:Update()
+	if self.WorkContract ~= nil then
+		return
+	end
+	
+	-- will idle until we get a work contract for something
+end
+
+function JobIdle:Quit()
+	if self.WorkContract == nil then
+		return
+	end
+	
+	-- Notify our employee that we quit
+	
+	self._node.Job = nil
+end
+
+repnet1Module.EndInitModule()

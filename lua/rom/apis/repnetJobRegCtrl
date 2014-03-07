@@ -1,0 +1,59 @@
+--[[
+
+	The idle job
+	will try to get basic info and become useful
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetJobRegCtrl
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, { repnet1Module.Name.RepNetJob })
+
+JobRegionController = {}
+JobRegionController.__index = JobRegionController
+
+function Create(node)
+	local instance = repnetJob.Create(node)
+	setmetatable(instance, JobRegionController)
+	
+	instance._cartographers = {}
+	
+	local regionX, regionY = GetRegion(node.Position.X, node.Position.Y)
+	instance.Region[0] = regionX;
+	instance.Region[1] = regionY;
+	instance.Region[2] = instance.Region[0] + (regionX + repnetNet.RegionSize);
+	instance.Region[3] = instance.Region[1] + (regionY + repnetNet.RegionSize);
+	
+	instance.Chunk[0] = instance.RegionX * repnetNet.ChunkSize
+	instance.Chunk[1] = instance.RegionY * repnetNet.ChunkSize
+	instance.Chunk[2] = instance.Chunk[0] + (instance.RegionWidth * repnetNet.ChunkSize)
+	instance.Chunk[3] = instance.Chunk[1] + (instance.RegionLength * repnetNet.ChunkSize)
+	
+	return instance
+end
+
+function JobRegionController:Update()
+	-- Todo
+end
+
+function JobRegionController:Quit()
+	-- Todo
+	
+	self._node.Job = nil
+end
+
+function JobRegionController:Contains(positionX, positionY)
+	local chunkX, chunkY = repnet0Utils.GetPositionInRegion(repnetNet.ChunkSize, positionX, positionY)
+	return chunkX >= self.Chunk[0] and 
+		   chunkX <= self.Chunk[2] and
+		   chunkY >= self.Chunk[1] and
+		   chunkY <= self.Chunk[3]
+end
+
+function JobRegionController:GetRegion(positionX, positionY)
+	local chunkX, chunkY = repnet0Utils.GetPositionInRegion(repnetNet.ChunkSize, positionX, positionY)
+	return repnet0Utils.GetPositionInRegion(repnetNet.RegionSize, chunkX, chunkY)
+end
+
+repnet1Module.EndInitModule()

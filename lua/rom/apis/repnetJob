@@ -1,0 +1,30 @@
+--[[
+
+	The base job "class"
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetJob
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, {})
+
+Job = {}
+Job.__index = Job
+
+function Create(node)
+	local instance = {}
+	setmetatable(instance, JobIdle)
+	
+	instance._node = node
+	
+	return instance
+end
+
+function Job:Update()
+end
+
+function Job:Quit()
+end
+
+repnet1Module.EndInitModule()

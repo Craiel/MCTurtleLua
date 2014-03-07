@@ -1,0 +1,66 @@
+--[[
+
+	Base script for a replicator node
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetNode
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, { repnet1Module.Name.RepNet })
+
+Side = {
+	["Front"] = "front";
+	["Back"] = "back";
+	["Left"] = "left";
+	["Right"] = "right";
+	["Top"] = "top";
+	["Bottom"] = "bottom";
+}
+
+Peripheral = {
+	["Modem"] = "modem";
+	["Workbench"] = "workbench";
+	["Enchanting"] = "xp";
+}
+
+Job = {
+	["Idle"] = 1;
+}
+
+function Create()
+	local instance = {}
+	--setmetatable(instance, Node)
+	
+	instance._net = repnetNet.Instance
+	instance._joinedChannels = {}
+
+	instance.Id = nil	
+	instance.CanDig = nil
+	instance.CanAttack = nil
+	instance.Name = nil
+	instance.IsTurtle = false
+	instance.IsRemote = true
+	instance.IsStationary = true
+	instance.Job = nil
+	instance.Workbench = nil
+	instance.Modem = nil
+	instance.IsActive = false
+	instance.Job = nil
+	instance.HasPosition = false
+	instance.Position = {
+		["X"] = nil;
+		["Y"] = nil;
+		["Z"] = nil;
+	}
+	
+	instance.LastGoodPosition = {
+		["X"] = nil;
+		["Y"] = nil;
+		["Z"] = nil;
+	}
+	
+	return instance;
+end
+
+repnet1Module.EndInitModule()

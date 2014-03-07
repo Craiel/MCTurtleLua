@@ -1,0 +1,94 @@
+--[[
+
+	Main replicator net
+	
+]]--
+
+local Name = repnet1Module.Name.RepNet
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, {})
+
+local ResponseChannelRange = {17000, 19000}
+local ChunkSize = 16
+local RegionSize = 64
+
+RepNet = {}
+RepNet.__index = RepNet
+
+Channel = {
+	["MainBroadcast"] = 9801;
+	["Idle"] = 9802;
+}
+
+-- Constructor
+function Create()
+	local instance = {}
+	setmetatable(instance, RepNet)
+	instance.Version = version
+	instance._nodes = {}
+	instance._replyChannels = {}
+	instance._currentRegionController = nil
+	return instance
+end
+
+-- Main functionality
+function RepNet:Register(id, node)
+	if table.contains(node, self._nodes) ~= nil then
+		return false
+	end
+	
+	print('Registering node: ' .. id)
+	self._nodes[id] = node
+end
+
+function RepNet:Unregister(id)
+	if self._nodes[id] == nil then
+		return false
+	end
+	
+	print('Unregistering node: ' .. id)
+	self._nodes[id] = nil
+end
+
+function RepNet:Broadcast(targetId, message)
+	print('Broadcasting message ' .. message.Type)
+	if target ~= nil then
+		print(' --> ' .. targetId)
+	end
+	if message.Message ~= nil then
+		print(' --> ' .. message.Message)
+	end
+	
+	local replyChannel = self:_GetFreeReplyChannel()
+	print(" <-- on channel " + replyChannel)
+	--source.Modem.open(Channel.MainBroadcast)
+	--source.Modem.open(replyChannel)
+	--source.Modem.transmit(Channel.MainBroadcast, replyChannel, message)
+	--source.Modem.close(Channel.MainBroadcast)
+	
+	-- Todo
+end
+
+function RepNet:_GetFreeReplyChannel()
+	local lowChannel = nil
+	for channel = ResponseChannelRange[0], ResponseChannelRange[1] do
+		if self._replyChannels[channel] == nil then
+			return channel
+		else
+			if lowChannel ~= nil then
+				if self._replyChannels[channel] < self._replyChannels[lowChannel] then
+					lowChannel = channel
+				end
+			else
+				lowChannel = channel
+			end
+		end
+	end
+	
+	return lowChannel
+end
+
+Instance = Create()
+
+repnet1Module.EndInitModule()

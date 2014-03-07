@@ -1,0 +1,179 @@
+--[[
+
+	Base script for a replicator node
+	
+]]--
+
+local Name = repnet1Module.Name.RepNetNodeLocal
+local Version = 0.1
+
+repnet1Module.BeginInitModule(Name, Version, {
+    repnet1Module.Name.RepNet,
+    repnet1Module.Name.RepNetCom,
+    repnet1Module.Name.RepNetNode,
+    repnet1Module.Name.RepNetJobRegCtrl
+})
+
+NodeLocal = {}
+NodeLocal.__index = NodeLocal
+
+function Create()
+	if repnetNet.Instance.Modem ~= nil then
+		error("A local instance was already created!")
+	end
+	
+	local instance = repnetNode.Create()
+	setmetatable(instance, NodeLocal)
+	instance._receivedEvents = {}
+	instance.CurrentRequest = nil
+	instance.CurrentRequestTime = 0
+	
+	instance.Id = os.getComputerID()
+	if turtle ~= nil then
+		instance.CanDig = turtle.dig ~= nil
+		instance.CanAttack = turtle.attack ~= nil
+		instance.IsTurtle = turtle.up ~= nil
+		instance.IsStationary = false
+	end
+	
+	instance.IsRemote = false
+	instance:UpdatePeripherals()
+	repnetNet.Instance:Register(instance.Id, instance)
+	return instance
+end
+
+function NodeLocal:UpdatePeripherals(self)
+	print(self.Id)
+	local peripherals = {}
+	
+	for key, value in pairs(repnetNode.Side) do
+		local peripheralType = peripheral.getType(value)
+		if peripheralType ~= nil then
+			print("Have " .. peripheralType .. " attached on " .. value)
+			peripherals[peripheralType] = peripheral.wrap(value)
+		end
+	end
+	
+	if table.contains(repnetNode.Peripheral.Workbench, peripherals) then
+		self.Workbench = peripherals[repnetNode.Peripheral.Workbench]
+	end
+	
+	if table.contains(repnetNode.Peripheral.Workbench, peripherals) then
+		self.Modem = peripherals[repnetNode.Peripheral.Modem]
+	end
+end
+
+function NodeLocal:Activate(self)
+	if self.IsActive then
+		return
+	end
+	
+	print("Activating...")
+	self.IsActive = true
+	while self.IsActive do
+		-- Main loop
+		self.Update(self)
+	end
+end
+
+function NodeLocal:UpdatePosition(self)	
+	print(self.Id)
+	local newX, newY, newZ = gps.locate()
+	if newX ~= nil then
+		self.Position.X = newX;
+		self.Position.Y = newY;
+		self.Position.Z = newZ;
+	else
+		if self.Position.X ~= nil then
+			self.LastGoodPosition = self.Position;
+			self.Position = {
+				["X"] = nil;
+				["Y"] = nil;
+				["Z"] = nil;
+			}
+		end
+	end
+end
+
+function NodeLocal:Update(self)
+	repnet0Utils.UpTime = repnet0Utils.UpTime + 1
+
+	-- Update some basic information
+	if not self.HasPosition then
+		self.UpdatePosition(self)
+	end
+	
+	-- get all replies and messages and store them temporarily
+	self._PullEvents()
+	
+	timedOut = false
+	
+	-- Do things in priority order:
+	--- check and process the running request
+	if self.CurrentRequest ~= nil then
+		self.CurrentRequestTime = self.CurrentRequestTime + 1
+		if self.CurrentRequest.Timeout < self.CurrentRequestTime then
+			-- When we timeout we fall through with a flag causing consequent operations not send a request but assume the outcome
+			timedOut = true
+			self.CurrentRequest = nil
+			self.CurrentRequestTime = 0
+			repnetNetCom.Info("Request timed out")
+		else
+			-- we are still good so lets wait
+			return
+		end
+	end
+	
+	--- we need a region controller
+	if _currentRegionController == nil then
+		if self.Position.X == nil then
+			repnetNetCom.Info("Currently no gps available, can not contact region controller without position")
+			return
+		end
+		
+		if timedOut then
+			-- Assume the position of controller
+			if self.job ~= nil then
+				self.job.Quit()
+			end
+			
+			repnetNetCom.Info("Assuming the position of region controller")
+			self.job = repnetJobRegCtrl.Create(self)
+			self._currentRegionController = self
+		else
+			repnetNetCom.Info("Requesting region controller")
+			self.CurrentRequest = repnetNetCom.RequestRegionController()
+			return
+		end
+	end
+	
+	-- Make sure we have a job
+	if self.Job == nil then
+		self.Job = repnetJobIdle.Create(self)
+	end
+	
+	-- Call update on our job
+	self.Job.Update()
+end
+
+function NodeLocal:_PullEvents()
+	self._receivedEvents = {}
+	os.queueEvent("closeLoop")
+	repeat
+		local event, param1, param2, param3, param4, param5 = os.pullEvent()
+		if event == "modem_message" then
+			local entry = repnetNetMessage.Decode(param4)
+			entry.Side = param1;
+			entry.Frequency = param2;
+			entry.ReplyFrequency = param3;
+			entry.Distance = param5;
+			
+			repnetNetCom.Info("Received new message of type " .. entry.Type .. " from " .. entry.SourceId)
+			repnet0Utils.Desc(entry)
+			
+			self._receivedEvents.append(entry)
+		end
+	until event == "closeLoop"
+end
+
+repnet1Module.EndInitModule()
